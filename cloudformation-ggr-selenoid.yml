@@ -1,0 +1,703 @@
+Description: Ggr/Selenoid grid stack
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      -
+        Label:
+          default: Aws Configuration
+        Parameters:
+          - VpcId
+          - AvailabilityZone
+          - KeyName
+      -
+        Label:
+          default: Ggr Configuration
+        Parameters:
+          - LaunchGgr
+          - GgrSpotInstance
+          - GgrInstanceType
+          - GgrArgs
+          - GgrVersion
+      -
+        Label:
+          default: Selenoid Configuration
+        Parameters:
+          - LaunchSelenoid
+          - LaunchSelenoidUi
+          - SelenoidSpotInstance
+          - InstancesCount
+          - SelenoidInstanceType
+          - Browsers
+          - BrowserVersions
+          - BrowsersLimit
+          - TmpfsSize
+          - SelenoidArgs
+          - SelenoidVersion
+      -
+        Label:
+          default: Misc configuration
+        Parameters:
+          - DockerComposeVersion
+          - CmVersion
+
+    ParameterLabels:
+      VpcId:
+        default: 'Which Vpc to use (Required)'
+      AvailabilityZone:
+        default: 'Which Availability Zone to use (Required)'
+      KeyName:
+        default: 'Key pair name (Optional)'
+      LaunchGgr:
+        default: 'Launch Ggr instance'
+      GgrSpotInstance:
+        default: 'Use spot instances'
+      LaunchSelenoid:
+        default: 'Launch Selenoid instances'
+      LaunchSelenoidUi:
+        default: 'Launch Selenoid Ui'
+      SelenoidSpotInstance:
+        default: 'Use spot instances'
+      InstancesCount:
+        default: 'How many instances to launch'
+      GgrInstanceType:
+        default: 'What instance type to use'
+      SelenoidInstanceType:
+        default: 'What instance type to use'
+      Browsers:
+        default: 'What browsers to install'
+      BrowserVersions:
+        default: 'How many latest browser versions to install'
+      BrowsersLimit:
+        default: 'Browsers limit per instance'
+      TmpfsSize:
+        default: 'Tmpfs Size'
+      SelenoidArgs:
+        default: 'Additional Selenoid CLI arguments'
+      GgrArgs:
+        default: 'Additional Ggr CLI arguments'
+      GgrVersion:
+        default: 'Ggr version'
+      SelenoidVersion:
+        default: 'Selenoid version'
+      DockerComposeVersion:
+        default: 'Docker Compose version'
+      CmVersion:
+        default: 'Cm version'
+
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    AllowedPattern: '.+'
+    ConstraintDescription: Vpc Id parameter can't be empty
+  KeyName:
+    Type: String
+    Default: ''
+    Description: Key Pair name fo ssh acces to instances
+  AvailabilityZone:
+    Type: AWS::EC2::AvailabilityZone::Name
+    AllowedPattern: '.+'
+    ConstraintDescription: Availability Zone parameter can't be empty
+  LaunchGgr:
+    Type: String
+    Default: 'Yes'
+    AllowedValues:
+      - 'Yes'
+      - 'No'
+  GgrSpotInstance:
+    Type: String
+    Default: 'No'
+    AllowedValues:
+      - 'Yes'
+      - 'No'
+  LaunchSelenoid:
+    Type: String
+    Default: 'Yes'
+    AllowedValues:
+      - 'Yes'
+      - 'No'
+  LaunchSelenoidUi:
+    Type: String
+    Default: 'No'
+    AllowedValues:
+      - 'Yes'
+      - 'No'
+    Description: Use when launching without ggr
+  SelenoidSpotInstance:
+    Type: String
+    Default: 'No'
+    AllowedValues:
+      - 'Yes'
+      - 'No'
+  GgrInstanceType:
+    Type: String
+    Default: t2.micro
+    Description: Choose instance type
+  SelenoidInstanceType:
+    Type: String
+    Default: t2.micro
+    Description: Choose instance type
+  InstancesCount:
+    Type: Number
+    Default: 1
+    MinValue: 1
+    Description: Enter desired instances count
+  Browsers:
+    Type: String
+    Default: 'chrome;firefox'
+    Description: Browser names and versions in cm format(e.g. chrome:69;firefox:60;opera) - https://aerokube.com/cm/latest/#_downloading_only_some_browser_versions
+  BrowsersLimit:
+    Type: Number
+    Default: 1
+    MinValue: 1
+    Description: Enter browsers count
+  BrowserVersions:
+    Type: Number
+    Default: 1
+    MinValue: 1
+    Description: Used only for broswers without specified versions
+  TmpfsSize:
+    Type: Number
+    Default: 128
+    Description: Size of tmpfs partition
+  SelenoidArgs:
+    Type: String
+    Default: -timeout 3m
+    Description: https://aerokube.com/selenoid/latest/#_selenoid_cli_flags
+  GgrArgs:
+    Type: String
+    Default: -guests-allowed
+    Description: https://aerokube.com/ggr/latest/#_ggr_cli_flags
+  GgrVersion:
+    Type: String
+    Default: latest-release
+    Description: https://github.com/aerokube/ggr/releases
+  SelenoidVersion:
+    Type: String
+    Default: latest
+    Description: https://github.com/aerokube/selenoid/releases
+  DockerComposeVersion:
+    Type: String
+    Default: '1.23.2'
+    Description: https://github.com/docker/compose/releases
+  CmVersion:
+    Type: String
+    Default: '1.5.7'
+    Description: https://github.com/aerokube/cm/releases
+
+
+Conditions:
+  LaunchGgr: !Equals [!Ref LaunchGgr, 'Yes']
+  LaunchSelenoid: !Equals [!Ref LaunchSelenoid, 'Yes']
+  LaunchSelenoidUi: !Equals [!Ref LaunchSelenoidUi, 'Yes']
+  UseSelenoidSpotInstances: !And
+    - !Condition LaunchSelenoid
+    - !Equals [!Ref SelenoidSpotInstance, 'Yes']
+  UseSelenoidOnDemandInstances: !And
+    - !Condition LaunchSelenoid
+    - !Equals [!Ref SelenoidSpotInstance, 'No']
+  UseGgrSpotInstances: !And
+    - !Condition LaunchGgr
+    - !Equals [!Ref GgrSpotInstance, 'Yes']
+  UseGgrOnDemandInstances: !And
+    - !Condition LaunchGgr
+    - !Equals [!Ref GgrSpotInstance, 'No']
+  UseSpotInstances: !Or
+    - !Condition UseSelenoidSpotInstances
+    - !Condition UseGgrSpotInstances
+  KeySpecified: !Not [ !Equals [ !Ref KeyName, "" ]]
+
+Resources:
+  GgrSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Condition: LaunchGgr
+    Properties:
+      GroupDescription: 'ggr security group'
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 8080
+          ToPort: 8080
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 8888
+          ToPort: 8888
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 4444
+          ToPort: 4444
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 0.0.0.0/0
+    Metadata:
+      AWS::CloudFormation::Init:
+        configSets:
+          default:
+            - 'install-docker'
+            - 'configure-docker'
+            - 'docker-compose'
+            - 'python3'
+            - 'ggr'
+        install-docker:
+          packages:
+            yum:
+              docker: []
+          services:
+            sysvinit:
+              docker:
+                enabled: "true"
+                ensureRunning: "true"
+                packages:
+                  yum:
+                    - "docker"
+        configure-docker:
+          commands:
+            '1_add_user_to_docker_group':
+              command: 'sudo usermod -a -G docker ec2-user'
+        docker-compose:
+          commands:
+            '1_get_docker_compose':
+              command: !Sub |
+                sudo curl -L https://github.com/docker/compose/releases/download/${DockerComposeVersion}/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
+            '2_add_executable_permissions':
+              command: 'sudo chmod +x /usr/local/bin/docker-compose'
+        python3:
+          packages:
+            yum:
+              python3: []
+          files:
+            /home/ec2-user/quota.py:
+              content: !Sub |
+                import json
+                import logging
+                import urllib.request
+                from collections import defaultdict
+                from xml.dom import minidom
+                from xml.etree import ElementTree
+                from xml.etree.ElementTree import SubElement, Element
+
+                import boto3
+
+                aws_region = '${AWS::Region}'
+                ec2_tag_name = 'selenoid'
+                selenoid_port = '4444'
+                quota_dir_path = '/home/ec2-user/grid-router/quota/'
+                guest_quota = 'guest.xml'
+
+                logger = logging.getLogger('quota')
+                handler = logging.FileHandler(quota_dir_path + 'quota.log')
+                formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s : %(funcName)s(): %(lineno)d')
+                handler.setFormatter(formatter)
+                logger.addHandler(handler)
+                logger.setLevel(logging.WARNING)
+
+
+                # returns a dictionary with browser names, versions and overall count from all selenoid hosts
+                def get_selenoid_configs(hosts):
+                    browsers = defaultdict(defaultdict)
+                    count = ''
+                    for host in hosts:
+                        try:
+                            url = 'http://{}:{}/status'.format(host, selenoid_port)
+                            with urllib.request.urlopen(url) as response:
+                                config = json.loads(response.read().decode('utf-8'))
+                        except IOError as error:
+                            logger.error("Error getting selenoid status from {} : {}".format(host, error))
+                            continue
+
+                        count = str(config['total'])
+
+                        for browser in config['browsers'].keys():
+                            for version in config['browsers'][browser].keys():
+                                if version not in browsers[browser]:
+                                    browsers[browser][version] = []
+                                    browsers[browser][version].append(host)
+                                else:
+                                    browsers[browser][version].append(host)
+                    return {'browsers': browsers, 'count': count}
+
+
+                def generate_quota_xml(configs):
+                    config = configs['browsers']
+                    count = configs['count']
+                    root = Element('qa:browsers', attrib={'xmlns:qa': 'urn:config.gridrouter.qatools.ru'})
+
+                    for browser_name in config:
+                        versions = list(config[browser_name].keys())
+                        latest_ver = max(versions)
+                        browser = SubElement(root, 'browser', attrib={'name': browser_name, 'defaultVersion': latest_ver})
+
+                        for ver in config[browser_name]:
+                            version = SubElement(browser, 'version', attrib={'number': ver})
+                            region = SubElement(version, 'region', attrib={'name': aws_region})
+                            for host in config[browser_name][ver]:
+                                SubElement(region, 'host', attrib={'name': host, 'port': selenoid_port, 'count': count})
+
+                    return ElementTree.ElementTree(root)
+
+
+                def get_selenoid_hosts(tag_name):
+                    ec2 = boto3.resource('ec2', region_name=aws_region)
+                    filters = [{'Name': 'tag:{}'.format(tag_name), 'Values': ['*']},
+                               {'Name': 'instance-state-name', 'Values': ['running']}]
+                    instances = ec2.instances.filter(Filters=filters)
+
+                    selenoid_hosts = list()
+
+                    for instance in list(instances):
+                        selenoid_hosts.append(instance.private_ip_address)
+
+                    return selenoid_hosts
+
+
+                def main():
+                    selenoid_hosts = get_selenoid_hosts(ec2_tag_name)
+
+                    selenoid_configs = get_selenoid_configs(selenoid_hosts)
+                    quota_xml = generate_quota_xml(selenoid_configs)
+                    quota = minidom.parseString(ElementTree.tostring(quota_xml.getroot(), 'utf-8')).toprettyxml(indent=" ")
+
+                    try:
+                        with open('{}{}'.format(quota_dir_path, guest_quota), 'w') as quota_file:
+                            quota_file.write(quota)
+                    except OSError as error:
+                        logger.error("Error writing guest quota file: {}".format(error))
+
+
+                if __name__ == '__main__':
+                    main()
+              group: 'ec2-user'
+              owner: 'ec2-user'
+          commands:
+            '1_install_boto3':
+              command: 'sudo pip3 install boto3'
+        ggr:
+          files:
+            /home/ec2-user/docker-compose.yaml:
+              content: !Sub
+                - |
+                  version: '3'
+                  services:
+                    ggr:
+                      container_name: ggr
+                      restart: always
+                      network_mode: bridge
+                      image: aerokube/ggr:${GgrVersion}
+                      volumes:
+                        - "$PWD/grid-router/:/etc/grid-router:ro"
+                      command: ["${Args}"]
+                      ports:
+                        - "4444:4444"
+                    ggr-ui:
+                      container_name: ggr-ui
+                      restart: always
+                      network_mode: bridge
+                      image: aerokube/ggr-ui:latest-release
+                      volumes:
+                        - "$PWD/grid-router/:/etc/grid-router:ro"
+                      ports:
+                        - "8888:8888"
+                    selenoid-ui:
+                      container_name: selenoid-ui
+                      restart: always
+                      network_mode: bridge
+                      image: "aerokube/selenoid-ui"
+                      network_mode: bridge
+                      links:
+                        - ggr-ui
+                      ports:
+                        - "8080:8080"
+                      command: ["-selenoid-uri", "http://ggr-ui:8888"]
+                - Args: !Join [ '","', !Split [ " " , !Ref GgrArgs ] ]
+              group: 'ec2-user'
+              owner: 'ec2-user'
+          commands:
+            '1_create_quota_folder':
+              command: 'sudo mkdir -p /home/ec2-user/grid-router/quota'
+            '2_create_test_user_quota':
+              command: 'echo "<qa:browsers xmlns:qa=\"urn:config.gridrouter.qatools.ru\"/>" | sudo tee -a /home/ec2-user/grid-router/quota/guest.xml'
+            '3_create_quota_reload_cron_job':
+              command: 'echo "* * * * * root /usr/bin/python3 /home/ec2-user/quota.py && docker kill -s HUP ggr >> /home/ec2-user/cron.log && docker kill -s HUP ggr-ui >> /home/ec2-user/cron.log" | sudo tee -a /etc/cron.d/quota'
+            '4_start_ggr':
+              cwd: '/home/ec2-user/'
+              command: 'docker-compose up -d'
+
+  SelenoidSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Condition: LaunchSelenoid
+    Properties:
+      GroupDescription: 'selenoid security group'
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 4444
+          ToPort: 4444
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 8080
+          ToPort: 8080
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 0.0.0.0/0
+    Metadata:
+      AWS::CloudFormation::Init:
+        configSets:
+          default:
+            - 'install-docker'
+            - 'configure-docker'
+            - 'selenoid'
+        install-docker:
+          packages:
+            yum:
+              docker: []
+          services:
+            sysvinit:
+              docker:
+                enabled: "true"
+                ensureRunning: "true"
+                packages:
+                  yum:
+                    - "docker"
+        configure-docker:
+          commands:
+            '1_add_user_to_docker_group':
+              command: 'sudo usermod -a -G docker ec2-user'
+            '2_set_docker0_mac':
+              command: 'cat /sys/class/net/eth0/address | sudo xargs ip link set docker0 address'
+        selenoid:
+          files:
+            /home/ec2-user/cm:
+              source: !Sub https://github.com/aerokube/cm/releases/download/${CmVersion}/cm_linux_amd64
+              group: 'ec2-user'
+              owner: 'ec2-user'
+              mode: 000770
+          commands:
+            '1_start_selenoid':
+              cwd: '/home/ec2-user/'
+              command: !Sub |
+                sudo ./cm selenoid start -v ${SelenoidVersion} -b "${Browsers}" -l ${BrowserVersions} -t ${TmpfsSize} -c /home/ec2-user/.aerokube/selenoid -g "-limit ${BrowsersLimit} ${SelenoidArgs}"
+            '2_start_selenoid_ui':
+              cwd: '/home/ec2-user/'
+              command: !If [LaunchSelenoidUi, sudo ./cm selenoid-ui start, echo]
+
+  GgrRole:
+    Type: 'AWS::IAM::Role'
+    Condition: LaunchGgr
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          -
+            Effect: 'Allow'
+            Principal:
+              Service:
+                - 'ec2.amazonaws.com'
+            Action:
+              - 'sts:AssumeRole'
+      Path: '/'
+      Policies:
+        -
+          PolicyName: ggrPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Action:
+                  - 'ec2:Describe*'
+                Effect: 'Allow'
+                Resource: "*"
+
+  GgrProfile:
+    Type: "AWS::IAM::InstanceProfile"
+    Condition: LaunchGgr
+    Properties:
+      Path: "/"
+      Roles:
+        - !Ref GgrRole
+
+  GgrInstance:
+    Type: AWS::EC2::Instance
+    Condition: UseGgrOnDemandInstances
+    DependsOn: GgrSecurityGroup
+    Properties:
+      AvailabilityZone: !Ref AvailabilityZone
+      IamInstanceProfile: !Ref GgrProfile
+      ImageId: 'ami-b70554c8'
+      InstanceType: !Ref GgrInstanceType
+      KeyName: !If [KeySpecified, !Ref KeyName, !Ref "AWS::NoValue"]
+      SecurityGroupIds:
+        - !Ref GgrSecurityGroup
+      Tags:
+        -
+          Key: Name
+          Value: ggr
+      UserData:
+        'Fn::Base64':
+          !Sub |
+          #!/bin/bash -xe
+          /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource GgrSecurityGroup --configsets default --region ${AWS::Region}
+
+  SelenoidLaunchConfig:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Condition: UseSelenoidOnDemandInstances
+    Properties:
+      ImageId: 'ami-b70554c8'
+      SecurityGroups:
+        - !Ref SelenoidSecurityGroup
+      InstanceType: !Ref SelenoidInstanceType
+      KeyName: !If [KeySpecified, !Ref KeyName, !Ref "AWS::NoValue"]
+      UserData:
+        'Fn::Base64':
+          !Sub |
+          #!/bin/bash -xe
+          /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource SelenoidSecurityGroup --configsets default --region ${AWS::Region}
+
+  SelenoidAutoScalingGroup:
+    Type: 'AWS::AutoScaling::AutoScalingGroup'
+    Condition: UseSelenoidOnDemandInstances
+    Properties:
+      AvailabilityZones:
+        - !Ref AvailabilityZone
+      DesiredCapacity: !Ref InstancesCount
+      LaunchConfigurationName: !Ref SelenoidLaunchConfig
+      MinSize: 1
+      MaxSize: !Ref InstancesCount
+      Tags:
+        -
+          Key: selenoid
+          Value: node
+          PropagateAtLaunch: 'true'
+        -
+          Key: Name
+          Value: 'selenoid-node'
+          PropagateAtLaunch: 'true'
+
+  FleetRole:
+    Type: AWS::IAM::Role
+    Condition: UseSpotInstances
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                - spotfleet.amazonaws.com
+        Version: 2012-10-17
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonEC2SpotFleetRole
+      Path: /
+
+  SelenoidSpotFleet:
+    Type: "AWS::EC2::SpotFleet"
+    Condition: UseSelenoidSpotInstances
+    Properties:
+      SpotFleetRequestConfigData:
+        TargetCapacity: !Ref InstancesCount
+        AllocationStrategy: 'lowestPrice'
+        Type: 'request'
+        IamFleetRole: !GetAtt FleetRole.Arn
+        LaunchSpecifications:
+          -
+            ImageId: 'ami-b70554c8'
+            InstanceType: !Ref SelenoidInstanceType
+            KeyName: !If [KeySpecified, !Ref KeyName, !Ref "AWS::NoValue"]
+            Placement:
+              AvailabilityZone: !Ref AvailabilityZone
+            SecurityGroups:
+              -
+                GroupId: !GetAtt SelenoidSecurityGroup.GroupId
+            TagSpecifications:
+              -
+                ResourceType: 'instance'
+                Tags:
+                  -
+                    Key: 'selenoid'
+                    Value: 'guest'
+                  -
+                    Key: Name
+                    Value: 'selenoid-node'
+            UserData:
+              'Fn::Base64':
+                !Sub |
+                #!/bin/bash -xe
+                /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource SelenoidSecurityGroup --configsets default --region ${AWS::Region}
+
+  GgrSpotFleet:
+    Type: "AWS::EC2::SpotFleet"
+    Condition: UseGgrSpotInstances
+    Properties:
+      SpotFleetRequestConfigData:
+        TargetCapacity: 1
+        AllocationStrategy: 'lowestPrice'
+        Type: 'request'
+        IamFleetRole: !GetAtt FleetRole.Arn
+        LaunchSpecifications:
+          -
+            ImageId: 'ami-b70554c8'
+            InstanceType: !Ref GgrInstanceType
+            IamInstanceProfile:
+              Arn: !GetAtt GgrProfile.Arn
+            KeyName: !If [KeySpecified, !Ref KeyName, !Ref "AWS::NoValue"]
+            Placement:
+              AvailabilityZone: !Ref AvailabilityZone
+            SecurityGroups:
+              -
+                GroupId: !GetAtt GgrSecurityGroup.GroupId
+            TagSpecifications:
+              -
+                ResourceType: 'instance'
+                Tags:
+                  -
+                    Key: Name
+                    Value: 'ggr'
+            UserData:
+              'Fn::Base64':
+                !Sub |
+                #!/bin/bash -xe
+                /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource GgrSecurityGroup --configsets default --region ${AWS::Region}
+                /opt/aws/bin/cfn-signal -e 0 --stack ${AWS::StackName} -d `curl http://169.254.169.254/latest/meta-data/public-ipv4` "${WaitHandle}"
+  
+
+  WaitHandle:
+    Type: AWS::CloudFormation::WaitConditionHandle
+    Condition: UseGgrSpotInstances
+
+  WaitCondition:
+    Type: AWS::CloudFormation::WaitCondition
+    Condition: UseGgrSpotInstances
+    Properties:
+      Handle: !Ref WaitHandle
+      Timeout: 300
+      Count: 1
+
+Outputs:
+  Ggr:
+    Value: !Sub
+      - http://${url}:4444
+      - { url: !If [ UseGgrOnDemandInstances, !GetAtt GgrInstance.PublicIp, !Select [0, !Split [ '"', !Select [ 3, !Split [ '"', !GetAtt WaitCondition.Data ] ] ] ] ]}
+    Condition: LaunchGgr
+  SelenoidUi:
+    Value: !Sub
+      - http://${url}:8080
+      - { url: !If [ UseGgrOnDemandInstances, !GetAtt GgrInstance.PublicIp, !Select [0, !Split [ '"', !Select [ 3, !Split [ '"', !GetAtt WaitCondition.Data ] ] ] ] ]}
+    Condition: LaunchGgr
+  SelenoidAutoscalingGroup:
+    Value: !Ref SelenoidAutoScalingGroup
+    Condition: UseSelenoidOnDemandInstances
+  SelenoidSpotFleet:
+    Value: !Ref SelenoidSpotFleet
+    Condition: UseSelenoidSpotInstances
