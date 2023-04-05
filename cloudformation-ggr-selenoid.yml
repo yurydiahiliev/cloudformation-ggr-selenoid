@@ -629,7 +629,7 @@ Resources:
                     Value: 'guest'
                   -
                     Key: Name
-                    Value: 'selenoid-node'
+                    Value: !Join ["-", ["selenoid-node", !Select [2, !Split ["/", !Ref AWS::StackId]]]]
             UserData:
               'Fn::Base64':
                 !Sub |
@@ -663,7 +663,7 @@ Resources:
                 Tags:
                   -
                     Key: Name
-                    Value: 'ggr'
+                    Value: !Join ["-", ["ggr", !Select [2, !Split ["/", !Ref AWS::StackId]]]]
             UserData:
               'Fn::Base64':
                 !Sub |
@@ -687,7 +687,7 @@ Resources:
 Outputs:
   Ggr:
     Value: !Sub
-      - http://${url}:4444
+      - http://${url}:8888/status
       - { url: !If [ UseGgrOnDemandInstances, !GetAtt GgrInstance.PublicIp, !Select [0, !Split [ '"', !Select [ 3, !Split [ '"', !GetAtt WaitCondition.Data ] ] ] ] ]}
     Condition: LaunchGgr
   SelenoidUi:
