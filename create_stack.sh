@@ -13,7 +13,7 @@ aws cloudformation create-stack \
 echo "Waiting for [$STACK_NAME] stack creation..."
 
 aws cloudformation wait stack-create-complete \
-    --stack-name ${STACK_NAME} \
+    --stack-name $STACK_NAME \
     --output text
 
 echo "Stack with name ${STACK_NAME} was created successfully!"
@@ -22,6 +22,6 @@ echo "After $(($duration / 60)) minutes and $(($duration % 60)) seconds."
 
 echo "Retriving GGR URL..."
 
-aws cloudformation describe-stacks --stack-name {$STACK_NAME} \
+aws cloudformation describe-stacks --stack-name $STACK_NAME \
     --query 'Stacks[0].Outputs[?OutputKey==`GgrUrl`].OutputValue' \
     --output text    
