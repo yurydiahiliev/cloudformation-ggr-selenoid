@@ -65,4 +65,11 @@ After 5 minutes and 11 seconds.
 ```console
 $ sh cleanup_stack.sh 
 ```
+Successfull delete response
+
+```console
+Starting to delete AWS Cloudformation Stack with name: ggr-selenoid
+Waiting for deleting AWS Cloudformation Stack with name: ggr-selenoid
+Deleted stack successfully!
+```
  
