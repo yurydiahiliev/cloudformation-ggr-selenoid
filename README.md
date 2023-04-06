@@ -1,17 +1,21 @@
-# cloudformation-ggr-selenoid
+# AWS Cloudformation-GGR-Selenoid
 
 **Introduction**
 ---
-This is a AWS Cloudfomation template for using in set up test automation infrastructure via AWS stack with AWS spot fleet instances for browser tests using Aerokube GGR and Selenoid docker conainers
+This is a AWS Cloudfomation template for using in set up test automation infrastructure via AWS Cloudformation Stack with AWS spot fleet instances for browser tests using Aerokube GGR and Selenoid docker containers
+
+**Stack schema**
+---
+
+![alt text](https://github.com/yurydiahiliev/cloudformation-ggr-selenoid/img/stack_schema.png)
 
 **Pre-requisites**
 ---
 Access to AWS account, installed aws-cli, generated AWS API keys
 
+
 **Prepare AWS stack**
 ---
-
-Usage: cloudformation-ggr-selenoid.yml [OPTIONS]
 
 1. Specify your own parameters in params.json file to use them in stack creation
 Available Options:
@@ -57,10 +61,18 @@ Example of successfull script response:
 Waiting for [ggr-selenoid] stack creation...
 Stack with name ggr-selenoid was created successfully!
 After 5 minutes and 11 seconds.
+Retriving GGR URL...
 ```
+Note: 
+- Script returns GGR URL output which is using in RemoteWebDriver object creation in test automation framework as a entry point to run all browser tests.
+- All GGR and Selenoid node instances can be found in AWS EC2 Dashboard names with stack name suffix.
+- Stack creation time depends on different factors such as count of requested Selenoid instances, AWS instance types and etc.
+- This approach can be used in CI/CD process as a part of 'infrastructure as a code' pipelines
 
 **Stack Cleanup**
 ---
+
+When AWS Cloudformation stack deleted, all spot fleet requests and EC2 instances will be terminated as well
 
 ```console
 $ sh cleanup_stack.sh 

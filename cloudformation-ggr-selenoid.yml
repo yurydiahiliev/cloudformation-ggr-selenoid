@@ -685,12 +685,12 @@ Resources:
       Count: 1
 
 Outputs:
-  Ggr:
+  GgrUrl:
     Value: !Sub
-      - http://${url}:8888/status
+      - http://${url}:8888
       - { url: !If [ UseGgrOnDemandInstances, !GetAtt GgrInstance.PublicIp, !Select [0, !Split [ '"', !Select [ 3, !Split [ '"', !GetAtt WaitCondition.Data ] ] ] ] ]}
     Condition: LaunchGgr
-  SelenoidUi:
+  GgrUi:
     Value: !Sub
       - http://${url}:8080
       - { url: !If [ UseGgrOnDemandInstances, !GetAtt GgrInstance.PublicIp, !Select [0, !Split [ '"', !Select [ 3, !Split [ '"', !GetAtt WaitCondition.Data ] ] ] ] ]}
