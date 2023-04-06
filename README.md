@@ -44,6 +44,9 @@ Available Options:
 | CmVersion                 | `1.5.7`                      | Aerokube CM version                        |
 | DockerComposeVersion      | `1.23.2`                     | Docker compose version                     |
 
+Note:
+All incoming network traffic to ports `22, 4444, 8888, 8080` is allowed inside template
+
 **How to create AWS Cloudformation Stack**
 ---
 
@@ -77,9 +80,9 @@ When AWS Cloudformation stack deleted, all spot fleet requests and EC2 instances
 ```console
 $ sh cleanup_stack.sh 
 ```
-Successfull delete response
+Successfull stack delete response
 
-```console
+```
 Starting to delete AWS Cloudformation Stack with name: ggr-selenoid
 Waiting for deleting AWS Cloudformation Stack with name: ggr-selenoid
 Deleted stack successfully!
