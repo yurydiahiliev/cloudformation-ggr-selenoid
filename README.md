@@ -7,7 +7,7 @@ This is a AWS Cloudfomation template for using in set up test automation infrast
 **Stack schema**
 ---
 
-![alt text](https://github.com/yurydiahiliev/cloudformation-ggr-selenoid/img/stack_schema.png)
+![alt text](https://github.com/yurydiahiliev/cloudformation-ggr-selenoid/blob/main/img/stack_schema.png)
 
 **Pre-requisites**
 ---
