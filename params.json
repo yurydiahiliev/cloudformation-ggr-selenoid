@@ -1,0 +1,86 @@
+[
+    {
+        "ParameterKey": "AvailabilityZone",
+        "ParameterValue": "us-east-1a"
+    },
+    {
+        "ParameterKey": "VpcId",
+        "ParameterValue": "vpc-05322bf757c9b2f06"
+    },
+    {
+        "ParameterKey": "KeyName",
+        "ParameterValue": "test"
+    },
+    {
+        "ParameterKey": "LaunchGgr",
+        "ParameterValue": "Yes"
+    },
+    {
+        "ParameterKey": "LaunchSelenoid",
+        "ParameterValue": "Yes"
+    },
+    {
+        "ParameterKey": "LaunchSelenoidUi",
+        "ParameterValue": "Yes"
+    },
+    {
+        "ParameterKey": "GgrArgs",
+        "ParameterValue": "-guests-allowed"
+    },
+    {
+        "ParameterKey": "GgrInstanceType",
+        "ParameterValue": "t2.micro"
+    },
+    {
+        "ParameterKey": "GgrSpotInstance",
+        "ParameterValue": "Yes"
+    },
+    {
+        "ParameterKey": "GgrVersion",
+        "ParameterValue": "latest"
+    },
+    {
+        "ParameterKey": "SelenoidInstanceType",
+        "ParameterValue": "t2.micro"
+    },
+    {
+        "ParameterKey": "SelenoidSpotInstance",
+        "ParameterValue": "Yes"
+    },
+    {
+        "ParameterKey": "SelenoidVersion",
+        "ParameterValue": "latest"
+    },
+    {
+        "ParameterKey": "InstancesCount",
+        "ParameterValue": "1"
+    },
+    {
+        "ParameterKey": "SelenoidArgs",
+        "ParameterValue": "-timeout 3m"
+    },
+    {
+        "ParameterKey": "TmpfsSize",
+        "ParameterValue": "128"
+    },
+    {
+        "ParameterKey": "Browsers",
+        "ParameterValue": "chrome:111.0;firefox:111.0"
+    },
+    {
+        "ParameterKey": "BrowsersLimit",
+        "ParameterValue": "4"
+    },
+    {
+        "ParameterKey": "CountLatestBrowserVersions",
+        "ParameterValue": "1"
+    },
+    {
+        "ParameterKey": "CmVersion",
+        "ParameterValue": "1.5.7"
+    },
+    {
+        "ParameterKey": "DockerComposeVersion",
+        "ParameterValue": "1.23.2"
+    }
+]

@@ -28,7 +28,7 @@ Metadata:
           - InstancesCount
           - SelenoidInstanceType
           - Browsers
-          - BrowserVersions
+          - CountLatestBrowserVersions
           - BrowsersLimit
           - TmpfsSize
           - SelenoidArgs
@@ -65,7 +65,7 @@ Metadata:
         default: 'What instance type to use'
       Browsers:
         default: 'What browsers to install'
-      BrowserVersions:
+      CountLatestBrowserVersions:
         default: 'How many latest browser versions to install'
       BrowsersLimit:
         default: 'Browsers limit per instance'
@@ -150,7 +150,7 @@ Parameters:
     Default: 1
     MinValue: 1
     Description: Enter browsers count
-  BrowserVersions:
+  CountLatestBrowserVersions:
     Type: Number
     Default: 1
     MinValue: 1
@@ -488,7 +488,7 @@ Resources:
             '1_start_selenoid':
               cwd: '/home/ec2-user/'
               command: !Sub |
-                sudo ./cm selenoid start -v ${SelenoidVersion} -b "${Browsers}" -l ${BrowserVersions} -t ${TmpfsSize} -c /home/ec2-user/.aerokube/selenoid -g "-limit ${BrowsersLimit} ${SelenoidArgs}"
+                sudo ./cm selenoid start -v ${SelenoidVersion} -b "${Browsers}" -l ${CountLatestBrowserVersions} -t ${TmpfsSize} -c /home/ec2-user/.aerokube/selenoid -g "-limit ${BrowsersLimit} ${SelenoidArgs}"
             '2_start_selenoid_ui':
               cwd: '/home/ec2-user/'
               command: !If [LaunchSelenoidUi, sudo ./cm selenoid-ui start, echo]
@@ -681,7 +681,7 @@ Resources:
     Condition: UseGgrSpotInstances
     Properties:
       Handle: !Ref WaitHandle
-      Timeout: 300
+      Timeout: 400
       Count: 1
 
 Outputs:
