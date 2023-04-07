@@ -74,7 +74,7 @@ Note:
 
 **Autoscaling**
 ---
-If you're using EC2 on-demand instances in params.json file, not spot instances, in case of termination some of selenoid nodes, new nodes will be initialising and added to GGR quota.xml using Python cron job, average uptime ~ 2 min
+If you're using EC2 on-demand instances in params.json file, not spot instances, in case of termination some of selenoid nodes, new nodes will be initializing and added to GGR quota.xml using Python cron job, average uptime ~ 2 min
 
 **Stack Cleanup**
 ---
