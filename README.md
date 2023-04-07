@@ -72,6 +72,10 @@ Note:
 - Stack creation time depends on different factors such as count of requested Selenoid instances, AWS instance types and etc.
 - This approach can be used in CI/CD process as a part of 'infrastructure as a code' pipelines
 
+**Autoscaling**
+---
+If you're using EC2 on-demand instances in params.json file, not spot instances, in case of termination some of selenoid nodes, new nodes will be initialising and added to GGR quota.xml in python cron job, avarage uptime ~ 2 min
+
 **Stack Cleanup**
 ---
 
