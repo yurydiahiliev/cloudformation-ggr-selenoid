@@ -581,7 +581,7 @@ Resources:
           PropagateAtLaunch: 'true'
         -
           Key: Name
-          Value: 'selenoid-node'
+          Value: !Join ["-", ["selenoid-node-on-demand", !Select [2, !Split ["/", !Ref AWS::StackId]]]]
           PropagateAtLaunch: 'true'
 
   FleetRole:
@@ -629,7 +629,7 @@ Resources:
                     Value: 'guest'
                   -
                     Key: Name
-                    Value: !Join ["-", ["selenoid-node", !Select [2, !Split ["/", !Ref AWS::StackId]]]]
+                    Value: !Join ["-", ["selenoid-node-spot", !Select [2, !Split ["/", !Ref AWS::StackId]]]]
             UserData:
               'Fn::Base64':
                 !Sub |
