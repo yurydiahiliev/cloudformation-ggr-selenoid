@@ -144,7 +144,7 @@ Parameters:
   Browsers:
     Type: String
     Default: 'chrome;firefox'
-    Description: Browser names and versions in cm format(e.g. chrome:69;firefox:60;opera) - https://aerokube.com/cm/latest/#_downloading_only_some_browser_versions
+    Description: Browser names and versions in cm format(e.g. chrome:111.0;firefox:111.0;) - https://aerokube.com/cm/latest/#_downloading_only_some_browser_versions
   BrowsersLimit:
     Type: Number
     Default: 1
@@ -161,7 +161,7 @@ Parameters:
     Description: Size of tmpfs partition
   SelenoidArgs:
     Type: String
-    Default: -timeout 3m
+    Default: -timeout 3m -disable-queue
     Description: https://aerokube.com/selenoid/latest/#_selenoid_cli_flags
   GgrArgs:
     Type: String
@@ -671,7 +671,6 @@ Resources:
                 /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource GgrSecurityGroup --configsets default --region ${AWS::Region}
                 /opt/aws/bin/cfn-signal -e 0 --stack ${AWS::StackName} -d `curl http://169.254.169.254/latest/meta-data/public-ipv4` "${WaitHandle}"
   
-
   WaitHandle:
     Type: AWS::CloudFormation::WaitConditionHandle
     Condition: UseGgrSpotInstances
@@ -687,7 +686,7 @@ Resources:
 Outputs:
   GgrUrl:
     Value: !Sub
-      - http://${url}:8888
+      - http://${url}:8888/status
       - { url: !If [ UseGgrOnDemandInstances, !GetAtt GgrInstance.PublicIp, !Select [0, !Split [ '"', !Select [ 3, !Split [ '"', !GetAtt WaitCondition.Data ] ] ] ] ]}
     Condition: LaunchGgr
   GgrUi:
