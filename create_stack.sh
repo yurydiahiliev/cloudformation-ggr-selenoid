@@ -20,8 +20,11 @@ echo "Stack with name ${STACK_NAME} was created successfully!"
 duration=$SECONDS
 echo "After $(($duration / 60)) minutes and $(($duration % 60)) seconds."
 
-echo "Retriving GGR URL..."
-
-aws cloudformation describe-stacks --stack-name $STACK_NAME \
+GGR_URL=$(aws cloudformation describe-stacks --stack-name $STACK_NAME \
     --query 'Stacks[0].Outputs[?OutputKey==`GgrUrl`].OutputValue' \
-    --output text    
+    --output text)
+until $(curl --output /dev/null --silent --head --fail ${GGR_URL}); do
+    printf '.'
+    sleep 5
+done
+echo "GGR URL is: ${GGR_URL}"       
